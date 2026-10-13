@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "BiliPop",
+    "slug": "bilipop",
+    "version": "1.3.0",
+    "platforms": [
+      "android",
+      "web"
+    ],
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bilipop",
+    "userInterfaceStyle": "light",
+    "updates": {
+      "enabled": false
+    },
+    "android": {
+      "package": "app.bilipop",
+      "versionCode": 3,
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#FF4FA3",
+        "foregroundImage": "./assets/images/icon.png"
+      },
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFD6EC",
+          "image": "./assets/images/icon.png",
+          "imageWidth": 120
+        }
+      ],
+      "expo-sqlite",
+      "expo-asset",
+      "./plugins/with-litert-kotlin"
+    ]
+  }
+}

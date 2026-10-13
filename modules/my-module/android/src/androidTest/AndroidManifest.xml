@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <activity
+      android:name="app.bilipop.translation.BackgroundTestActivity"
+      android:exported="false"
+      android:configChanges="orientation|screenSize"
+      android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+  </application>
+</manifest>

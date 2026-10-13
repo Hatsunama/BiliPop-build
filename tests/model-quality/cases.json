@@ -1,0 +1,25 @@
+{
+  "modelRevision": "046f55aec303cdee3e0318604406d4df20f1e8ea",
+  "assetSha256": {
+    "encoder.onnx": "d3b7912bf6a9bd27e4c074c2df91d4ff3d5b4bc5f7f6c8d7cc9c805c98fbafee",
+    "decoder.onnx": "023be4f841f4c47cd65fffcbaa81c0d99d7f7e0138f7ba0e03fa220a4e688aff",
+    "tokenizer.modeldata": "d0c7da27056e8f42adce9e76d8e792e5daa64e15f5acd2e7aabf0121877dd4c1",
+    "tokenizer-config.modeldata": "a914596e6bff113a8428d4793b586da87cd0b95697a0e72aba90cc1d95858481"
+  },
+  "cases": [
+    {
+      "id": "matcha-latte-not-matches",
+      "input": "Try this matcha latte recipe at home.",
+      "requiredFragments": [
+        "抹茶"
+      ],
+      "forbiddenFragments": [
+        "火柴"
+      ],
+      "reason": "The drink ingredient matcha is 抹茶; 火柴 means matches. This case checks this observed terminology failure, not complete translation quality.",
+      "observedBaseline": "在家里试试火柴拿铁配方",
+      "observedAt": "2026-10-13",
+      "sourceCommit": "c25a53305ff4b88164697a5f778f9e7ec6e49f4d"
+    }
+  ]
+}

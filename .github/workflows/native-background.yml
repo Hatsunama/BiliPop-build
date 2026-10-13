@@ -1,0 +1,88 @@
+name: Development background regression
+
+# No private Actions execution is authorized. Publication requires a reviewed
+# no-run commit; skip markers protect only push/pull_request, not other triggers.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/native-background.yml'
+      - 'scripts/ci-native-background.sh'
+      - 'modules/my-module/**'
+      - 'src/**'
+      - 'tests/**'
+      - 'package*.json'
+      - 'app.*'
+      - 'metro.config.js'
+      - 'tsconfig.json'
+      - 'eslint.config.js'
+
+permissions:
+  contents: read
+
+# Explicit bash adds pipefail, so tee cannot hide npm/prebuild failures.
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: native-background-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  native-background:
+    # Source-build mirror: emulator execution is intentionally disabled.
+    if: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      BILIPOP_QA: '1'
+      NODE_OPTIONS: '--max-old-space-size=2048'
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Record exact head and runner provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/native-background
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+          {
+            printf 'head=%s\ntree=%s\nrun=%s\nattempt=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+            uname -a
+            node --version
+            npm --version
+            printf 'runner_image=%s image_version=%s\n' "${ImageOS:-unknown}" "${ImageVersion:-unknown}"
+          } | tee artifacts/native-background/provenance.txt
+          test -x "$JAVA_HOME_17_X64/bin/java"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - name: Install locked JavaScript dependencies
+        run: npm ci --no-audit --no-fund 2>&1 | tee artifacts/native-background/npm-ci.log
+      - name: Source regressions, lint and typecheck
+        run: npm run check 2>&1 | tee artifacts/native-background/source-check.log
+      - name: Generate development Android project without installing
+        run: |
+          npx --no-install expo prebuild --platform android --no-install 2>&1 | tee artifacts/native-background/prebuild.log
+          grep -F 'gradle-9.3.1-bin.zip' android/gradle/wrapper/gradle-wrapper.properties
+      - name: Real module instrumentation on one API 36 x86_64 emulator
+        run: bash scripts/ci-native-background.sh
+      - name: Preserve logs and instrumentation results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: native-background-${{ github.event.pull_request.head.sha }}-${{ github.run_attempt }}
+          retention-days: 3
+          if-no-files-found: warn
+          path: |
+            artifacts/native-background/
+            modules/my-module/android/build/reports/androidTests/
+            modules/my-module/android/build/outputs/androidTest-results/

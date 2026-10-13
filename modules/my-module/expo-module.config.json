@@ -1,0 +1,11 @@
+{
+  "platforms": [
+    "android"
+  ],
+  "android": {
+    "modules": [
+      "app.bilipop.translation.BiliPopTranslationModule",
+      "app.bilipop.translation.BiliPopBackgroundModule"
+    ]
+  }
+}

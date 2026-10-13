@@ -1,0 +1,46 @@
+{
+  "artifact": {
+    "repo": "Hatsunama/caption-studio-hy-mt2-1.8b-q8",
+    "revision": "4d8552d273b5b4e064358e1a6ff37b396d0726e5",
+    "file": "model.litertlm",
+    "bytes": 1815668080,
+    "sha256": "ed7747292c58435ab6e4b58bd7837c566737aae3eec5da6e3c328998529dcf97",
+    "url": "https://huggingface.co/Hatsunama/caption-studio-hy-mt2-1.8b-q8/resolve/4d8552d273b5b4e064358e1a6ff37b396d0726e5/model.litertlm",
+    "format": "LiteRT-LM",
+    "quantization": "Q8",
+    "license": "Apache-2.0",
+    "base": "tencent/Hy-MT2-1.8B",
+    "adaptation": "Targeted preference adaptation step64; merged; official LiteRT export. Objective and exact base training revision not exposed in public card."
+  },
+  "runtime": {
+    "dependency": "com.google.ai.edge.litertlm:litertlm-android:0.17.1",
+    "verifiedBackend": "CPU",
+    "contextTokens": 1024,
+    "maxOutputTokens": 256,
+    "outputContract": "single translated sentence",
+    "promptPolicy": "quoted_context_v8",
+    "systemInstruction": null,
+    "tools": [],
+    "automaticToolCalling": false,
+    "enableResponseFormat": false,
+    "requiredSourceTarget": "Full English language names, with Simplified Chinese/Traditional Chinese exact names for script suffix behavior."
+  },
+  "promptSource": {
+    "commit": "4726f2d980ac613bd3ac9c68e9f58d1be2ed8004",
+    "path": ".diagnostics/semantic-prod-45/hy_prompt_profiles.py",
+    "gitBlob": "96e396de13670ca6dd7f99a1295a96ad3f909764",
+    "url": "https://github.com/Hatsunama/Caption-Studio/blob/4726f2d980ac613bd3ac9c68e9f58d1be2ed8004/.diagnostics/semantic-prod-45/hy_prompt_profiles.py#L38-L65",
+    "local": "hy_prompt_profiles.py",
+    "function": "quoted_context_task"
+  },
+  "caveats": [
+    "No production integration or final APK/AAB acceptance claimed by candidate card.",
+    "432 Linux mechanical instruction-execution cases and 76 selected cases per Seeker/Samsung were reported, not independently rerun here.",
+    "Reported phone coverage was English source across 18 target languages; meaning not independently graded.",
+    "Upstream language support is not proof of adapted Q8 all-pairs quality.",
+    "Do not reuse private cache4096 artifact SHA853685c01074b8fb94024e81d1fdb487239cecbefaf5b02053c03376bd5db221 or Qwen JSON-batch prompt.",
+    "1024 is total input+output context; reserve space for output and prompt/context overhead; no silent truncation.",
+    "Candidate tokenizer/chat template are not separately published; preserve exact compiled artifact and let compatible LiteRT-LM use its tokenizer/template; never carry Marian token IDs.",
+    "No verified universal minimum RAM. Exact phone memory and latency need native measurement."
+  ]
+}

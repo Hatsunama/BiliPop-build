@@ -1,0 +1,33 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'app.bilipop.translation'
+version = '0.1.0'
+
+dependencies {
+  implementation 'com.google.ai.edge.litertlm:litertlm-android:0.17.1'
+  androidTestImplementation 'androidx.test:runner:1.7.0'
+  androidTestImplementation 'androidx.test:core:1.7.0'
+  androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+  androidTestImplementation 'io.mockk:mockk-android:1.14.9'
+}
+
+android {
+  namespace "app.bilipop.translation"
+  defaultConfig {
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    versionCode 1
+    versionName "0.1.0"
+  }
+  // MockK's test dependencies carry duplicate license resources.
+  packagingOptions {
+    resources {
+      excludes += ['META-INF/LICENSE.md', 'META-INF/LICENSE-notice.md']
+    }
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
