@@ -76,7 +76,7 @@ export async function screenHarness(initial = {}, config = {}) {
     '@/theme': require('../../src/theme.ts'), '@/engine/languages': languages, './language-selector': selector, './refract-background': { RefractBackground: 'RefractBackground' },
   }, { setTimeout: (fn) => { const id = ++nextTimer; timers.set(id, fn); return id; }, clearTimeout: (id) => timers.delete(id) });
   let renderer;
-  const mount = async () => { await act(async () => { renderer = create(React.createElement(BiliPopScreen)); }); };
+  const mount = async () => { await act(async () => { renderer = create(React.createElement(BiliPopScreen), { createNodeMock: config.createNodeMock }); }); };
   const byId = (id) => renderer.root.findByProps({ testID: id });
   const text = (node) => typeof node === 'string' ? node : node?.children?.map(text).join('') ?? '';
   const button = (label) => renderer.root.findAllByType('Pressable').find((x) => text(x) === label);
