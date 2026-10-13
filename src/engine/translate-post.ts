@@ -45,17 +45,37 @@ export async function translateUnit(text: string, model: TextTranslator, options
   return output.join('');
 }
 
-export async function translatePost(input: string, model: TextTranslator,
-  options: TranslateOptions & { onProgress?: (progress: Progress) => void } = {}): Promise<TranslationResult> {
+// Detect boundaries in the original text, ignoring those inside protected spans.
+// This preserves URL bytes without placeholder tokens or changing prose spacing.
+function sentenceParts(text: string): string[] {
+  const protectedSpans = [...text.matchAll(PROTECTED)].map((match) => ({ start: match.index, end: match.index + match[0].length }));
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const match of text.matchAll(/(\n+|(?<=[.!?])[^\S\n]+|(?<=[。！？]))/gu)) {
+    if (protectedSpans.some((span) => match.index > span.start && match.index < span.end)) continue;
+    parts.push(text.slice(cursor, match.index), match[0]);
+    cursor = match.index + match[0].length;
+  }
+  parts.push(text.slice(cursor));
+  return parts;
+}
+
+export function validatePostInput(input: string, options: TranslateOptions = {}) {
   if (!input.trim()) throw new Error('Paste text or hashtags first.');
   const sourceLanguage = options.sourceLanguage ?? DEFAULT_SOURCE_LANGUAGE;
   const targetLanguage = options.targetLanguage ?? DEFAULT_TARGET_LANGUAGE;
   validateLanguagePair(sourceLanguage, targetLanguage);
-  const request = { ...options, sourceLanguage, targetLanguage };
   if (input.length > 4000) throw new Error('Please translate up to 4,000 characters at a time. Your draft has not been cut.');
   const parsed = parseEnglishPost(input);
   if (parsed.hashtags.length > 30) throw new Error('Please translate up to 30 hashtags at a time.');
-  const parts = parsed.body.split(/(\n+|(?<=[.!?])[^\S\n]+|(?<=[。！？]))/u);
+  return { parsed, sourceLanguage, targetLanguage };
+}
+
+export async function translatePost(input: string, model: TextTranslator,
+  options: TranslateOptions & { onProgress?: (progress: Progress) => void } = {}): Promise<TranslationResult> {
+  const { parsed, sourceLanguage, targetLanguage } = validatePostInput(input, options);
+  const request = { ...options, sourceLanguage, targetLanguage };
+  const parts = sentenceParts(parsed.body);
   const total = parts.filter((part) => /\S/.test(part)).length + parsed.hashtags.length;
   let completed = 0;
   const progress = () => options.onProgress?.({ completed, total });

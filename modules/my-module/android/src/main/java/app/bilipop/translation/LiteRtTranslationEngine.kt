@@ -25,16 +25,24 @@ internal class LiteRtTranslationEngine(model: File, cache: File) : TranslationEn
     engine.initialize()
   }
   override fun conversation(): TranslationConversation {
-    val native = engine.createConversation(ConversationConfig(
+    val config = ConversationConfig(
       systemInstruction = null, initialMessages = emptyList(), tools = emptyList(),
       // Deterministic implementation choice, not a claim about unpublished training/evaluation settings.
       samplerConfig = SamplerConfig(topK = 1, topP = 1.0, temperature = 0.0, seed = 0),
       automaticToolCalling = false, channels = emptyList(),
       maxOutputToken = SerialTranslationRuntime.OUTPUT_BUDGET, enableResponseFormat = false,
-    ))
+    )
+    // First-turn byte accounting below depends on an empty preface. Fail closed if
+    // this configuration later gains system/history/tool content.
+    check(config.systemInstruction == null && config.initialMessages.isEmpty() && config.tools.isEmpty())
+    val native = engine.createConversation(config)
     return object : TranslationConversation {
       override fun renderedInputBytes(prompt: String): Int =
-        (native.renderPrefaceIntoString() + native.renderMessageIntoString(Message.user(prompt))).toByteArray(Charsets.UTF_8).size
+        // On this fresh, empty-preface conversation, the SDK renders the complete
+        // first user turn, including template wrappers and generation prompt.
+        // Rendering an empty preface separately is invalid for HY templates that
+        // inspect messages[0], and is not part of the actual first-turn send path.
+        native.renderMessageIntoString(Message.user(prompt)).toByteArray(Charsets.UTF_8).size
       override fun start(prompt: String, callback: TranslationCallback) {
         var invalidOutput = false
         native.sendMessageAsync(prompt, object : MessageCallback {

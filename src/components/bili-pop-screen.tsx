@@ -3,8 +3,8 @@ import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, StyleSheet, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { cancelModelDownload, downloadModel, getModelStatus, getTranslator, getModelNotices, MODEL_BYTES, type ModelStatus } from '@/engine/model-provider';
-import { DEFAULT_SOURCE_LANGUAGE, DEFAULT_TARGET_LANGUAGE, LANGUAGE_OPTIONS, languageName, validateLanguagePair, type LanguageCode } from '@/engine/languages';
-import { translatePost, type Progress } from '@/engine/translate-post';
+import { DEFAULT_SOURCE_LANGUAGE, DEFAULT_TARGET_LANGUAGE, LANGUAGE_OPTIONS, languageName, type LanguageCode } from '@/engine/languages';
+import { translatePost, validatePostInput, type Progress } from '@/engine/translate-post';
 import { readDraft, readResult, saveDraft, saveResult, readSourceLanguage, readTargetLanguage, saveSourceLanguage, saveTargetLanguage, readResultLanguages, saveResultLanguages } from '@/storage/device-storage';
 import { colors, radii } from '@/theme';
 import { LanguageSelector } from './language-selector';
@@ -56,6 +56,8 @@ export function BiliPopScreen() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const [copyError, setCopyError] = useState('');
+  const actionError = [error, copyError].filter(Boolean).join('\n');
   const [storageErrors, setStorageErrors] = useState(initial.errors);
   const [unreadable, setUnreadable] = useState(initial.unreadable);
   const unreadableFields = useRef(initial.unreadable);
@@ -217,11 +219,11 @@ export function BiliPopScreen() {
   };
   const translate = async () => {
     if (controller.current || busy || !modelReady || !draft.trim() || unreadableFields.current.draft || unreadableFields.current.output) return;
-    try { validateLanguagePair(sourceLanguage, targetLanguage); }
-    catch (caught) { setError(caught instanceof Error ? caught.message : 'Choose different input and output languages.'); return; }
+    try { validatePostInput(draft, { sourceLanguage, targetLanguage }); }
+    catch (caught) { setError(caught instanceof Error ? caught.message : 'Check your input and language choices.'); return; }
     const input = draft;
     const pair = { sourceLanguage, targetLanguage };
-    setBusy(true); resetCopy(); setError(''); setProgress(null);
+    setBusy(true); resetCopy(); setError(''); setCopyError(''); setProgress(null);
     const current = new AbortController();
     controller.current = current;
     const ownsRequest = () => alive.current && controller.current === current && !current.signal.aborted;
@@ -247,11 +249,12 @@ export function BiliPopScreen() {
   };
   const copy = async () => {
     const revision = ++copyRevision.current;
+    setCopied(false);
     try {
       await Clipboard.setStringAsync(output);
-      if (alive.current && copyRevision.current === revision) setCopied(true);
+      if (alive.current && copyRevision.current === revision) { setCopied(true); setCopyError(''); }
     } catch {
-      if (alive.current && copyRevision.current === revision) setError('Could not copy. You can select and copy the output manually.');
+      if (alive.current && copyRevision.current === revision) setCopyError('Could not copy. You can select and copy the output manually.');
     }
   };
   const statusText = !modelStatus ? 'Checking the model on this device…'
@@ -296,7 +299,7 @@ export function BiliPopScreen() {
             </Text>
             <Pressable accessibilityRole="button" onPress={cancel} style={styles.sample}><Text style={styles.meta}>Cancel</Text></Pressable>
           </View> : null}
-          {error ? <Text selectable accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+          {actionError ? <Text selectable accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
           {storageError ? <Text selectable accessibilityRole="alert" style={styles.error}>{storageError}</Text> : null}
           {unreadable.draft || unreadable.output ? <Pressable accessibilityRole="button" disabled={busy} onPress={retrySavedText} style={styles.copyButton}>
             <Text style={styles.copyText}>Retry saved text</Text>

@@ -12,7 +12,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
     let random = seed, sequence = 0;
     const next = (n) => { random ^= random << 13; random ^= random >>> 17; random ^= random << 5; return (random >>> 0) % n; };
     const oracle = { draft: '', output: '', savedDraft: '', savedOutput: '', busy: false, copied: false,
-      error: '', saveDraftFailed: false, saveOutputFailed: false, draftDiskBroken: false, outputDiskBroken: false, revision: 0, active: null };
+      error: '', copyError: '', saveDraftFailed: false, saveOutputFailed: false, draftDiskBroken: false, outputDiskBroken: false, revision: 0, active: null };
     const translations = [], copies = [], trace = [], coverage = new Set();
     const write = (field, value) => {
       oracle[field] = value; oracle.copied = false; oracle.revision++;
@@ -34,7 +34,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
         case 'pop': {
           await h.burst('POP IT!', 'POP IT!', 'POP IT!');
           const job = { job: h.calls.at(-1), result: `翻译 ${oracle.draft.match(/\d+/)[0]}`, settled: false, source: oracle.draft };
-          translations.push(job); oracle.active = job; oracle.busy = true; oracle.copied = false; oracle.revision++; oracle.error = '';
+          translations.push(job); oracle.active = job; oracle.busy = true; oracle.copied = false; oracle.revision++; oracle.error = ''; oracle.copyError = '';
           assert.equal(job.job.text, oracle.draft); entry.source = oracle.draft; break;
         }
         case 'cancel':
@@ -52,6 +52,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
         }
         case 'copy':
           await h.press(oracle.copied ? 'COPIED!' : 'COPY TEXT + TAGS');
+          oracle.copied = false;
           copies.push({ job: h.copies.at(-1), revision: ++oracle.revision, settled: false });
           assert.equal(h.copies.at(-1).text, oracle.output); entry.text = oracle.output; break;
         case 'copyResolve': case 'copyReject': {
@@ -59,8 +60,8 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
           entry.stale = item.revision !== oracle.revision;
           await h.act(() => action === 'copyResolve' ? item.job.resolve() : item.job.reject(Error('Clipboard unavailable')));
           if (item.revision === oracle.revision) {
-            if (action === 'copyResolve') oracle.copied = true;
-            else oracle.error = 'Could not copy. You can select and copy the output manually.';
+            if (action === 'copyResolve') { oracle.copied = true; oracle.copyError = ''; }
+            else oracle.copyError = 'Could not copy. You can select and copy the output manually.';
           }
           break;
         }
@@ -72,7 +73,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
         case 'relaunch':
           await h.unmount(); await h.mount();
           oracle.draft = oracle.savedDraft; oracle.output = oracle.savedOutput; oracle.active = null;
-          oracle.busy = false; oracle.copied = false; oracle.error = ''; oracle.saveDraftFailed = false; oracle.saveOutputFailed = false;
+          oracle.busy = false; oracle.copied = false; oracle.error = ''; oracle.copyError = ''; oracle.saveDraftFailed = false; oracle.saveOutputFailed = false;
           // Every old clipboard completion belongs to an unmounted component.
           oracle.revision++; for (const item of copies) item.revision = -1;
           break;
@@ -81,7 +82,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
       trace.push(entry);
       const actual = h.snapshot();
       const expected = { draft: oracle.draft, output: oracle.output, busy: oracle.busy, copied: oracle.copied,
-        hasError: Boolean(oracle.error), storageWarning: oracle.saveDraftFailed || oracle.saveOutputFailed,
+        hasError: Boolean(oracle.error || oracle.copyError), storageWarning: oracle.saveDraftFailed || oracle.saveOutputFailed,
         savedDraft: oracle.savedDraft, savedOutput: oracle.savedOutput };
       const observed = { draft: actual.draft, output: actual.output, busy: actual.busy, copied: actual.copied,
         hasError: actual.alerts.some((x) => !x.startsWith('Local saving failed')),
@@ -89,7 +90,7 @@ for (const seed of [0xB11B0B, 0xC0FFEE, 0x51A7E]) {
         savedDraft: h.values.get(D) ?? '', savedOutput: h.values.get(R) ?? '' };
       entry.expected = expected; entry.observed = observed;
       assert.deepEqual(observed, expected, `seed=${seed} trace=${JSON.stringify(trace.map(({ action, source, stale }) => ({ action, source, stale })))}`);
-      if (oracle.error) assert.ok(actual.alerts.includes(oracle.error));
+      for (const message of [oracle.error, oracle.copyError].filter(Boolean)) assert.ok(actual.alerts.flatMap((alert) => alert.split('\n')).includes(message));
       assert.equal(actual.sourceEditable, !oracle.busy);
       assert.equal(actual.popDisabled, oracle.busy || !oracle.draft.trim());
     }

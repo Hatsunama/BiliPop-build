@@ -6,7 +6,7 @@ const settle = async (h, job, text) => h.act(() => job.resolve(text));
 const fail = async (h, job, message) => h.act(() => job.reject(Error(message)));
 
 test('cumulative real screen flow: translate, edit, copy, replace, fail, cancel, retry, relaunch', async () => {
-  const h = await screenHarness(); await h.mount();
+  const h = await screenHarness({ 'bilipop.targetLanguage.v1': 'zh' }); await h.mount();
   try {
     await h.edit('source-input', 'Hello #AI');
     await h.press('POP IT!');

@@ -2,84 +2,20 @@
 // Upstream support is not adapted-Q8 quality certification for every direction.
 export const LANGUAGE_OPTIONS = [
   {
-    "code": "zh",
-    "name": "Simplified Chinese"
-  },
-  {
-    "code": "en",
-    "name": "English"
-  },
-  {
-    "code": "fr",
-    "name": "French"
-  },
-  {
-    "code": "pt",
-    "name": "Portuguese"
-  },
-  {
-    "code": "es",
-    "name": "Spanish"
-  },
-  {
-    "code": "ja",
-    "name": "Japanese"
-  },
-  {
-    "code": "tr",
-    "name": "Turkish"
-  },
-  {
-    "code": "ru",
-    "name": "Russian"
-  },
-  {
     "code": "ar",
     "name": "Arabic"
   },
   {
-    "code": "ko",
-    "name": "Korean"
+    "code": "bn",
+    "name": "Bengali"
   },
   {
-    "code": "th",
-    "name": "Thai"
+    "code": "my",
+    "name": "Burmese"
   },
   {
-    "code": "it",
-    "name": "Italian"
-  },
-  {
-    "code": "de",
-    "name": "German"
-  },
-  {
-    "code": "vi",
-    "name": "Vietnamese"
-  },
-  {
-    "code": "ms",
-    "name": "Malay"
-  },
-  {
-    "code": "id",
-    "name": "Indonesian"
-  },
-  {
-    "code": "tl",
-    "name": "Filipino"
-  },
-  {
-    "code": "hi",
-    "name": "Hindi"
-  },
-  {
-    "code": "zh-Hant",
-    "name": "Traditional Chinese"
-  },
-  {
-    "code": "pl",
-    "name": "Polish"
+    "code": "yue",
+    "name": "Cantonese"
   },
   {
     "code": "cs",
@@ -90,74 +26,139 @@ export const LANGUAGE_OPTIONS = [
     "name": "Dutch"
   },
   {
-    "code": "km",
-    "name": "Khmer"
+    "code": "en",
+    "name": "English"
   },
   {
-    "code": "my",
-    "name": "Burmese"
+    "code": "tl",
+    "name": "Filipino"
   },
   {
-    "code": "fa",
-    "name": "Persian"
+    "code": "fr",
+    "name": "French"
+  },
+  {
+    "code": "de",
+    "name": "German"
   },
   {
     "code": "gu",
     "name": "Gujarati"
   },
   {
-    "code": "ur",
-    "name": "Urdu"
-  },
-  {
-    "code": "te",
-    "name": "Telugu"
-  },
-  {
-    "code": "mr",
-    "name": "Marathi"
-  },
-  {
     "code": "he",
     "name": "Hebrew"
   },
   {
-    "code": "bn",
-    "name": "Bengali"
+    "code": "hi",
+    "name": "Hindi"
   },
   {
-    "code": "ta",
-    "name": "Tamil"
+    "code": "id",
+    "name": "Indonesian"
   },
   {
-    "code": "uk",
-    "name": "Ukrainian"
+    "code": "it",
+    "name": "Italian"
   },
   {
-    "code": "bo",
-    "name": "Tibetan"
+    "code": "ja",
+    "name": "Japanese"
   },
   {
     "code": "kk",
     "name": "Kazakh"
   },
   {
+    "code": "km",
+    "name": "Khmer"
+  },
+  {
+    "code": "ko",
+    "name": "Korean"
+  },
+  {
+    "code": "ms",
+    "name": "Malay"
+  },
+  {
+    "code": "mr",
+    "name": "Marathi"
+  },
+  {
     "code": "mn",
     "name": "Mongolian"
+  },
+  {
+    "code": "fa",
+    "name": "Persian"
+  },
+  {
+    "code": "pl",
+    "name": "Polish"
+  },
+  {
+    "code": "pt",
+    "name": "Portuguese"
+  },
+  {
+    "code": "ru",
+    "name": "Russian"
+  },
+  {
+    "code": "zh",
+    "name": "Simplified Chinese"
+  },
+  {
+    "code": "es",
+    "name": "Spanish"
+  },
+  {
+    "code": "ta",
+    "name": "Tamil"
+  },
+  {
+    "code": "te",
+    "name": "Telugu"
+  },
+  {
+    "code": "th",
+    "name": "Thai"
+  },
+  {
+    "code": "bo",
+    "name": "Tibetan"
+  },
+  {
+    "code": "zh-Hant",
+    "name": "Traditional Chinese"
+  },
+  {
+    "code": "tr",
+    "name": "Turkish"
+  },
+  {
+    "code": "uk",
+    "name": "Ukrainian"
+  },
+  {
+    "code": "ur",
+    "name": "Urdu"
   },
   {
     "code": "ug",
     "name": "Uyghur"
   },
   {
-    "code": "yue",
-    "name": "Cantonese"
+    "code": "vi",
+    "name": "Vietnamese"
   }
 ] as const;
 
 export type LanguageCode = typeof LANGUAGE_OPTIONS[number]["code"];
 export const DEFAULT_SOURCE_LANGUAGE: LanguageCode = "en";
-export const DEFAULT_TARGET_LANGUAGE: LanguageCode = "zh";
+// The list is kept in deterministic alphabetical order by its visible English names.
+export const DEFAULT_TARGET_LANGUAGE: LanguageCode = LANGUAGE_OPTIONS[0].code;
 export function languageName(code: string): string {
   const language = LANGUAGE_OPTIONS.find((item) => item.code === code);
   if (!language) throw new Error("Choose a supported language.");

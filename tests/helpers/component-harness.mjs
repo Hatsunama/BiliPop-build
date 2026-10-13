@@ -9,7 +9,7 @@ import { act, create } from 'react-test-renderer';
 // platform boundaries are replaced; this is not a native rendering/device test.
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const require = createRequire(import.meta.url);
-const { translatePost } = require('../../src/engine/translate-post.ts');
+const { translatePost, validatePostInput } = require('../../src/engine/translate-post.ts');
 export const deferred = () => {
   let resolve, reject;
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -44,7 +44,7 @@ export async function screenHarness(initial = {}, config = {}) {
   const modelBytes = 1_815_668_080;
   let currentStatus = { state: config.modelState ?? 'ready', downloadedBytes: config.modelState && config.modelState !== 'ready' ? 0 : modelBytes, totalBytes: modelBytes };
   let heldLoad = false, heldCopy = false;
-  const storage = loadProduction('src/storage/device-storage.ts', {}, { localStorage: {
+  const storage = loadProduction(config.nativeStorage ? 'src/storage/device-storage.native.ts' : 'src/storage/device-storage.ts', { 'expo-sqlite/localStorage/install': {} }, { localStorage: {
     getItem: (key) => { reads.push(key); if (readFailures.has(key)) throw Error('read unavailable'); return values.get(key) ?? null; },
     setItem: (key, value) => { if (writeFailures.has(key)) throw Error('disk full');
       if (failuresAfter.has(key)) {
@@ -72,7 +72,7 @@ export async function screenHarness(initial = {}, config = {}) {
   const { BiliPopScreen } = loadProduction('src/components/bili-pop-screen.tsx', {
     'react-native': hosts, 'react-native-safe-area-context': { SafeAreaView: 'SafeAreaView' },
     'expo-clipboard': clipboard, '@/engine/model-provider': provider,
-    '@/engine/translate-post': { translatePost }, '@/storage/device-storage': storage,
+    '@/engine/translate-post': { translatePost, validatePostInput }, '@/storage/device-storage': storage,
     '@/theme': require('../../src/theme.ts'), '@/engine/languages': languages, './language-selector': selector, './refract-background': { RefractBackground: 'RefractBackground' },
   }, { setTimeout: (fn) => { const id = ++nextTimer; timers.set(id, fn); return id; }, clearTimeout: (id) => timers.delete(id) });
   let renderer;
