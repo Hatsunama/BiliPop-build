@@ -264,7 +264,7 @@ export function BiliPopScreen() {
     : modelStatus.state === 'verifying' ? 'Verifying the downloaded model before use…'
     : downloadBusy ? 'Starting model download…'
     : modelStatus.state === 'paused' ? `Download paused at ${byteLabel(modelStatus.downloadedBytes)}. Resume when you’re ready.`
-    : modelStatus.state === 'unsupported' ? 'This browser is a UI preview. On-device translation requires the Android app.'
+    : modelStatus.state === 'unsupported' ? modelStatus.error ?? 'This browser is a UI preview. On-device translation requires the Android app.'
     : modelStatus.state === 'error' ? modelStatus.error ?? 'Model setup failed. Retry when you’re ready.'
     : `First use: download the ${byteLabel(MODEL_BYTES)} translation model. Internet is needed for this download; translation then works offline.`;
   const canDownload = modelStatus && ['missing', 'paused', 'error'].includes(modelStatus.state) && !downloadBusy;
