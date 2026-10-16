@@ -361,3 +361,23 @@ test('saved-text retry from an unmounted screen performs no reads or writes', as
     assert.equal(h.snapshot().draft, 'New live edit');
   } finally { await h.unmount(); }
 });
+
+
+for (const reason of [
+  'This translation model requires Android 8.0 or newer. Saved text remains available.',
+  'This translation model requires a supported 64-bit device. Saved text remains available.',
+]) test(`unsupported Android setup preserves its native requirement: ${reason}`, async () => {
+  const h = await screenHarness({ 'bilipop.draft.v1': 'Keep original', 'bilipop.result.v1': 'Keep reviewed output' }, { modelState: 'unsupported' });
+  h.setModelState({ state: 'unsupported', error: reason });
+  await h.mount();
+  try {
+    assert.equal(textOf(byId(h, 'model-status-message')), reason);
+    assert.equal(h.snapshot().popDisabled, true);
+    assert.equal(h.root().findAllByProps({ testID: 'download-model' }).length, 0);
+    assert.equal(h.loads.length, 0); assert.equal(h.downloads.length, 0);
+    assert.equal(h.snapshot().draft, 'Keep original'); assert.equal(h.snapshot().output, 'Keep reviewed output');
+    await h.edit('source-input', 'Still editable');
+    assert.equal(h.snapshot().draft, 'Still editable');
+    assert.equal(h.snapshot().output, 'Keep reviewed output');
+  } finally { await h.unmount(); }
+});
